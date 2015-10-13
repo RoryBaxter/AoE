@@ -1,0 +1,209 @@
+import random
+#This is where the unit details are. Each unit will have varing charitics
+class Unit(object):
+    def __init__(self, moves, Range, attack, defence, costGold, costWheat, turnsToMake, Type):
+        self.moves = moves
+        self.Range = Range
+        self.attack = attack
+        self.defence = defence
+        self.costGold = costGold
+        self.costWheat = costWheat
+        self.turnsToMake = turnsToMake
+        self.Type = Type
+        self.MapDisplay = self.Type[0]
+        self.team = 0
+        self.hp = 100
+        self.x = 0
+        self.y = 0
+        
+#This is where all the differnt types of unit are created
+Worker = Unit(4, 0, 0, 0, 50, 50, 1, "Worker")
+Archer = Unit(3, 3, 250, 200, 100, 75, 2, "Archer")
+Horse = Unit(7, 1, 250, 200, 75, 100, 2, "Horse")
+Swordsman = Unit(2, 1, 300, 200, 150, 150, 3, "Swordsman")
+
+#This is whewre the base for the buildings are created
+class Building(object):
+    def __init__(self, defence, costGold, costWheat, outputGold, outputWheat, Type):
+        self.defence = defence
+        self.costGold = costGold
+        self.costWheat = costWheat
+        self.outputGold = outputGold
+        self.outputWheat = outputWheat
+        self.Type = Type
+        self.MapDisplay = self.Type[0]
+        self.team = 0
+        self.hp = 100
+        self.attack = 0
+        self.x = 0
+        self.y = 0
+
+#This is where the details for the buildings are
+Town = Building(200, 300, 300, 10, 10, "Town")
+Farm = Building(150, 200, 100, 0, 25, "Farm")
+Mine = Building(150, 100, 200, 25, 0, "Mine")
+
+#The algorthim to work out the damage that a unit will give
+def BattleDamage(Attacking, Defening):
+    A=Attacking.attack
+    A=A/10
+    A=A*(Attacking.hp/10)
+    Dam = A / Defending.defence
+    if type(Defening) == Building:
+        Dam = Dam / 4
+    elif type(Defending) == Unit:
+        Dam = Dam / 2
+    return Dam
+
+#This is what makes the map
+def LineMaker(Size):
+    row = []
+    while Size > 0:
+        #There is a random chace of varying featres apperaing on the map
+        num = random.randrange(21)
+        if num < 16:
+            row.append("Plains  ")
+        elif num < 18:
+            row.append("Gold    ")
+        else:
+            row.append("Wheat   ")
+        Size = Size - 1
+    return row
+
+#This is where teh map is generated
+def TerrainGen(Size):
+    Map = []
+    A = Size
+    while A > 0:
+        Map.append(LineMaker(Size))
+        A = A - 1
+    return Map
+
+#This prints the map to the terminal
+def LinePrinter(Lot):
+    for line in Lot:
+        print (line)
+
+#
+AllMapDisplays=["w","a","h","s","t","f","m"]
+            
+
+
+def play():
+    def EnemyThere(i,i2,t):
+        for a in AllMapDisplays:
+            if a in GameMap[i2][i]:
+                if str(t) not in GameMap[i2][i]:
+                    return True
+        else: return False
+
+#This is the algorithm to find what actions are availbe and in which direction they are so. M=Map, x=x cornideate, y=y corindate, t=team r=range, MS=Map Size
+    def searchA(x, y, t, r, MS):
+        edgex=x
+        edgex1=int(MS)-int(x)
+        edgey=y
+        edgey1=int(MS)-y
+        possible={}
+        for i in range(edgex,edgex1):
+            for i2 in range(edgey,edgey1):
+                if EnemyThere(i, i2, t):
+                    print("sdfsdf")#possible.update(i2:i)
+        return possible
+
+#The algorthim to allow find where the unit can move to. d = direction
+    def searchM(x, y, r, MS, d):
+        edgex1=MS-x
+        edgey1=MS-y
+        if d == "n":
+            if r<=x: return True
+            else: return False
+
+    def searchME(m,x,y,r,t,d):
+        if direction=="n":
+            for i in range(r):
+                if EnemyThere(x-i,y,t): return True
+        elif direction=="e":
+            for i in range(r):
+                if "e" in m[y+i][x]:
+                    return True
+        elif direction=="s":
+            for i in range(r):
+                if "e" in m[y][x+i]:
+                    return True
+        elif direction=="w":
+            for i in range(r):
+                if "e" in m[y-i][x]:
+                    return True
+        else: return False
+                  
+    Row = 0
+    Square = 0
+    MapSize = input("How big do you want the map to be. The smallest size is 10 ")
+    while int(MapSize) < 10:
+        MapSize = input("The map has to be bigger than 10 ")
+    GameMap = TerrainGen(int(MapSize))
+    U=[Swordsman]
+    U[0].x,U[0].y = 1,1
+    B=[]
+    EU=[Swordsman]
+    #EU[0].x,EU[0].y = 2,5
+    EB=[]
+    LinePrinter(GameMap)
+    for unit in U:
+        if unit.MapDisplay not in GameMap[unit.y][unit.x]:
+            GameMap[unit.y][unit.x]=GameMap[unit.y][unit.x][0:6] + unit.MapDisplay + str(unit.team)
+            print(1)
+    for unit in EU:
+        if unit.MapDisplay not in GameMap[unit.y][unit.x]:
+            GameMap[unit.y][unit.x]=GameMap[unit.y][unit.x][0:6] + unit.MapDisplay + str(unit.team)
+            print(2)
+#    UnitLocations = {0:0}
+#    EUnitLocations = {1:1}
+    while True:
+        LinePrinter(GameMap)
+        cycle = 1
+        for part in U:
+            print("What would you like to do with your " + part.Type)
+            Action = input("")
+            if Action == "a":
+                where = searchA(part.x, part.y, part.team, part.Range, MapSize)
+                if len(where) == 0:
+                    print("There is no enemy unit within range")
+                    while Action != "m" or "b":
+                        Action = input("Please selcet another action ")
+                else:
+                    print("Where would you like to attack \nThere are enemies at: ")
+                    for i in where:
+                        print(i)
+                    AX=int(input("X "))
+                    AY=int(input("Y "))
+                    for unit in EU:
+                        if unit.x==AX and unit.y==AY:
+                            unit.hp=unit.hp-BattleDamage(part.Attack, unit.defence)
+                            if unit.hp<=0:
+                                print("You have dealt "+ str(BattleDamage(part.Attack, unit.defence))+ " damage, this has killed the enimies "+ unit.Type)
+                                
+                    
+            if Action == "m":
+                done=0
+                while done==0:
+                    done2=0
+                    direction=input("Which direction would you like to move in ")
+                    while done2==0:
+                         distance=input("How far would you like to move your " + part.Type + " ")
+                         if int(distance) > part.moves:
+                             print("A "+part.Type+" can't move that far")
+                    if searchM(GameMap):
+                        if searchME(GameMap,part.x,part.y,part.moves,distance,direction):
+                            print("There is an enemy in your path")
+                            a=input("Would you like to continue? ")
+                            if a == "y":
+                                part.x
+                    else:
+                        print("You can't move your "+part.Type+" that far in that direction")
+                        print("Try again")
+                        input()
+
+play()
+                    
+
